@@ -4,7 +4,7 @@ from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, accuracy_score
 from preprocess import *
 from sklearn.metrics import classification_report
 
@@ -35,6 +35,7 @@ result_combine = pandas.concat([train_data, test_data])
 count_vect = CountVectorizer(max_features=500)
 # X_train_counts = count_vect.fit_transform(result_combine['text'])
 X_train_counts = count_vect.fit_transform(train_data['text'])
+print(count_vect.get_feature_names())
 
 tfidf_transformer = TfidfTransformer(use_idf=True, smooth_idf=True)
 X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)
@@ -57,6 +58,8 @@ def print_report():
     print('Naive Bayes Confusion Matrix:\n', confusion_matrix(test_data['class'], pred), end='\n\n')
     print('Naive Bayes Classification Report:\n',
           classification_report(test_data['class'], pred), end='\n\n')
+    print('Naive Bayes accuracy:\n',
+          accuracy_score(test_data['class'], pred), end='\n\n')
     # print(list(test_data['class']))
     # print(list(pred))
 
