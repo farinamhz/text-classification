@@ -1,7 +1,9 @@
 import codecs
 import glob
+import string
 from pandas import *
 from hazm import Normalizer
+import re
 
 SOURCES = [
     ('Final_Dataset\Train\اجتماعی\*.txt', 'اجتماعی'),
@@ -22,6 +24,30 @@ SOURCES_test = [
     ('Final_Dataset\Test\ورزشی\*.txt', 'ورزشی'),
 ]
 
+def clean_sentence(sentence):
+    sentence = arToPersianChar(sentence)
+    return sentence
+
+
+def arToPersianChar(userInput):
+    dic = {
+        'ك': 'ک',
+        'ي': 'ی'
+    }
+    return multiple_replace(dic, userInput)
+
+
+def multiple_replace(dic, text):
+    pattern = "|".join(map(re.escape, dic.keys()))
+    return re.sub(pattern, lambda m: dic[m.group()], str(text))
+
+'''''
+def fetch_stop_words():
+    nmz = Normalizer()
+    f = open('./persian', encoding='utf-8')
+    words = f.read()
+    return sorted(set([nmz.normalize(text = w) for w in words.split('\n') if w]))
+'''''
 
 def fetch_stop_words():
     nmz = Normalizer()
@@ -30,21 +56,19 @@ def fetch_stop_words():
             list(
                 set(
                     [
-                        nmz.normalize(w) for w in codecs.open('persian', encoding='utf-8').read().split('\n') if w
-                    ]
-                )
-            )
-        )
-    )
+                        nmz.normalize(w) for w in codecs.open('persian', encoding='utf-8').read().split('\n') if w]))))
     return stops
 
 
 def remove_mystopwords(sentence):
+    #remove punc
+    for ch in "1234567890&;#$()*,-./:[]«»؛،؟۰۱۲۳۴۵۶۷۸۹!":
+        sentence = sentence.replace(ch, "")
+    #remove stopwords
     stopwords = fetch_stop_words()
     tokens = sentence.split(" ")
     tokens_filtered = [word for word in tokens if not word in stopwords]
     return " ".join(tokens_filtered)
-
 
 def read_files(path):
     files = glob.glob(path)
@@ -52,7 +76,22 @@ def read_files(path):
         with codecs.open(file, "r", encoding='utf-8',
                          errors='ignore') as f:
             text = f.read()
+            # print("1")
+            # print(text)
+            # text = clean_sentence(text)
+            text = text.replace("nbsp", " ")
+            text = text.replace("amp", " ")
+            normalizer = Normalizer()
+            normalizer.normalize(text=text)
             text = remove_mystopwords(text)
+
+            # text = text.replace("ها", " ")
+            # text = text.replace("های", " ")
+            # text = text.replace("هایی", " ")
+
+            # print(2)
+            # print(text)
+            # print("FINIIIIIIISH")
             text = text.replace('\n', '')
             yield file, text
 
